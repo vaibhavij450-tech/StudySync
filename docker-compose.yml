@@ -1,0 +1,21 @@
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: studysync-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: .
+    container_name: studysync-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
