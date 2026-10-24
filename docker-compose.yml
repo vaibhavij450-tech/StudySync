@@ -1,6 +1,7 @@
 
 services:
   backend:
+    image: studysync-backend:latest
     build:
       context: ./backend
     container_name: studysync-backend
@@ -11,6 +12,7 @@ services:
       - "5000:5000"
 
   frontend:
+    image: studysync-frontend:latest
     build:
       context: .
     container_name: studysync-frontend
