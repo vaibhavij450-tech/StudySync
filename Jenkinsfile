@@ -30,16 +30,21 @@ pipeline {
             }
         }
 
+        
+           
         stage('Deploy StudySync') {
             steps {
                 sh '''
-                    docker-compose -f docker-compose.yml down --remove-orphans
+                    docker-compose -f docker-compose.yml down --remove-orphans || true
+
+                    docker rm -f studysync-backend studysync-frontend || true
 
                     STUDYSYNC_ENV_FILE=/run/secrets/studysync-backend.env \
                     docker-compose -f docker-compose.yml up -d --no-build --force-recreate
                 '''
             }
         }
+
 
         stage('Verify Deployment') {
             steps {
