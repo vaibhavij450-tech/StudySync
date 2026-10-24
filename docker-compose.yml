@@ -7,7 +7,7 @@ services:
     container_name: studysync-backend
     restart: unless-stopped
     env_file:
-      - ./backend/.env
+      - ${STUDYSYNC_ENV_FILE:-./backend/.env}
     ports:
       - "5000:5000"
 

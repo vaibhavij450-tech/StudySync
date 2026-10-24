@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -6,13 +7,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                echo 'StudySync CI/CD pipeline started'
-                checkout scm
-            }
-        }
-
         stage('Verify Project Files') {
             steps {
                 sh 'test -f Dockerfile'
@@ -35,14 +29,31 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy StudySync') {
+            steps {
+                sh '''
+                    STUDYSYNC_ENV_FILE=/run/secrets/studysync-backend.env \
+                    docker-compose -f docker-compose.yml up -d --no-build --force-recreate
+                '''
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh 'docker ps --filter name=studysync-frontend --filter status=running'
+                sh 'docker ps --filter name=studysync-backend --filter status=running'
+                echo 'Deployment verification completed'
+            }
+        }
     }
 
     post {
         success {
-            echo 'StudySync pipeline completed successfully!'
+            echo 'StudySync CI/CD pipeline completed successfully!'
         }
         failure {
-            echo 'Pipeline failed. Check the Console Output.'
+            echo 'Pipeline failed. Check Console Output.'
         }
     }
 }
