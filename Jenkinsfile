@@ -12,7 +12,25 @@ pipeline {
                 sh 'test -f Dockerfile'
                 sh 'test -f docker-compose.yml'
                 sh 'test -f backend/Dockerfile'
+                sh 'test -f backend/tests/health.test.js'
                 echo 'All required project files found'
+            }
+        }
+
+        stage('Frontend Quality Checks') {
+            steps {
+                sh 'npm ci'
+                sh 'npm run lint'
+                sh 'npm run build'
+            }
+        }
+
+        stage('Backend Tests') {
+            steps {
+                dir('backend') {
+                    sh 'npm ci'
+                    sh 'npm test'
+                }
             }
         }
 
@@ -30,13 +48,10 @@ pipeline {
             }
         }
 
-        
-           
         stage('Deploy StudySync') {
             steps {
                 sh '''
                     docker-compose -f docker-compose.yml down --remove-orphans || true
-
                     docker rm -f studysync-backend studysync-frontend || true
 
                     STUDYSYNC_ENV_FILE=/run/secrets/studysync-backend.env \
@@ -45,16 +60,11 @@ pipeline {
             }
         }
 
-
         stage('Verify Deployment') {
             steps {
                 sh '''
-                    docker ps --filter "name=studysync-frontend" --filter "status=running" --format "{{.Names}}"
-                    docker ps --filter "name=studysync-backend" --filter "status=running" --format "{{.Names}}"
-
                     test "$(docker inspect -f '{{.State.Running}}' studysync-frontend)" = "true"
                     test "$(docker inspect -f '{{.State.Running}}' studysync-backend)" = "true"
-
                     echo "Both StudySync containers are running"
                 '''
             }
